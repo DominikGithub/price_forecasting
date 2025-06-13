@@ -67,11 +67,41 @@ MAE and RSME are below the pricings standard deviation of 90.656821, which means
 
 
 
-# Optimization
+# Optimization Approach
+
+Task: Buy energy cheap and store in batteries to sell at high prices.
+
+### Problem formalization 
+
+Charging speed at time t: $c_t$
+
+__Battery constraints__ 
+
+Total  capacity: $0 <= SOC_t <= 1MWh$
+
+Charging speed: $-1 <= c_t <= 1MWh$
+
+
+__Trading actions__ 
+
+$c_t > 0 → $ Charging/Buy
+
+$c_t = 0 → $ Idle/Hold
+
+$c_t < 0 → $ Discharging/Sell
+
+
+__State update__ $ SOC_{t+1} = SOC_t + c_t$
+
+__Optimizable cost function__ $max ∑_t = price_t * c_t$
+
+
+
+# Approache comparison
 
 Historic prices profit: 21616.323853726
 
-Predicted prices profit: 14723.185275925882
+Predicted prices profit: <TODO fix model and recalculate>
 
-Prediction vs historic price strategy difference: -6893.138577800119
+Prediction vs historic price strategy difference: <TODO show difference>
 
