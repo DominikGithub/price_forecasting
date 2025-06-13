@@ -1,5 +1,5 @@
 '''
-Electicity prices forecasting model.
+Electricity prices forecasting model.
 '''
 
 import os

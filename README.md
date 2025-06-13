@@ -84,11 +84,11 @@ Charging speed: $-1 <= c_t <= 1MWh$
 
 __Trading actions__ 
 
-$c_t > 0 → $ Charging/Buy
+$c_t > 0 → $ Charging/Buy 
 
-$c_t = 0 → $ Idle/Hold
+$c_t = 0 → $ Idle/Hold 
 
-$c_t < 0 → $ Discharging/Sell
+$c_t < 0 → $ Discharging/Sell 
 
 
 __State update__ $ SOC_{t+1} = SOC_t + c_t$
