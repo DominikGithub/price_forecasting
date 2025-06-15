@@ -1,4 +1,4 @@
-# Energy price forecasting 
+# Energy Price Forecasting 
 
 Time series day ahead public market auction price forecasting.
 
@@ -33,7 +33,8 @@ _Y [Price in €/MWh]_
 
 ### Raw time series - statistics
 ![Raw data statistics](./plots/1_eda_stats.png)
-_ds: Time | y: price_
+
+_ds: Time | y: Price_
 
 
 ### Sampling distribution
@@ -65,17 +66,13 @@ Legend:
 TODO adjust model parameters for improved results.
 
 ### Cross validation
-Time series cross validation is used to measure the forecast error using historical data. This is done by selecting cutoff points in the history, and for each of them fitting the model using data only up to that cutoff point.  The forecasted values are compared to the actual values.
+Time series cross validation is used to measure the forecast error using historical data. This is done by selecting cutoff points in the history, and for each of them fitting the model using data only up to that cutoff point. The forecasted values (_yhat_) are compared to the actual (_y_) values.
 
 ![Cross validation](./plots/6_cross_validation.png) 
-_Prediction & observations over time [Price in €/MWh]_
-
-Legend: 
-- _y_: Ground truth
-- _yhat_: prediction
+_Prediction & observations over one month [Price in €/MWh]_
 
 
-__Evaluation metrics:__
+__Evaluation metrics__
 | Experiment   | Pred. Period | Pred. Horizon |      MAE     |     RMSE     |
 | ------------ | ------------ | ------------- | ------------ | ------------ |
 |  Next hour   |       1      |       1       |     47.66    |      61.33   |
@@ -85,9 +82,9 @@ __Evaluation metrics:__
 Metrics are below the pricings standard deviation of 90.656821, which means they are reasonable, but error metrics are still at quite high level. Hence the model did derive valuable information from the data, but it can be assumed that there is quite some potential left with dataset preprocessing and model selection. And most importantly the models parameters (e.g. sampling strategy) are just chosen for quick experimentation but not for optimal results and need more adjustment.
 
 
-### Review 
+#### Review 
 
-Prophet model for time series forecasting is exhausting its capability to handle high frequency, volatile and spiky (non-linear and irregular) patterns from external unkown factors in the data. Alternative modeling approaches like tree based classical (e.g. XGBoost) models or TemporalFusion Transformers might suit the problem better and the achieve higher performance. 
+Prophet model for time series forecasting is exhausting its capability to handle high frequency, volatile and spiky (non-linear and irregular) patterns from external unkown factors in the data. Alternative modeling approaches like tree based classical (e.g. XGBoost) models or TemporalFusion Transformers might suit the problem better and achieve higher performance. 
 
 TODO investigate other models 
 
