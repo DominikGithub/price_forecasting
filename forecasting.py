@@ -103,6 +103,8 @@ df_resampled.to_csv('./df_resampled.csv')
 m = Prophet()       # mcmc_samples=300  -> NOTE different sampling strategy could increase the result quality, but at the cost of massive runtime complexity surge
 m.fit(df_resampled)
 
+# TODO model serialization
+
 # config prediction
 # num future intervals
 future = m.make_future_dataframe(periods=20)

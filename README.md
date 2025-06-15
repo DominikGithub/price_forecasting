@@ -50,9 +50,9 @@ Data verification after data cleansing, preprocessing and interpolation.
 
 ## Forecast model
 __POC parametrization__ 
-- Initial window size: 120 days $\rightarrow$ training window (the bigger the better) 
-- Horizon: 1 hours $\rightarrow$ prediction step size (how far to predict into the future) 
-- Period: 1 hours $\rightarrow$ number of prediction steps (how often to make predictions) 
+- Initial window size in days (120) $\rightarrow$ training window (the bigger the better) 
+- Horizon in hours $\rightarrow$ prediction step size (how far to predict into the future) 
+- Period in hours $\rightarrow$ number of prediction steps (how often to make predictions) 
 ![predictions](./plots/5_predictions.png) 
 <center>Vertical axis: Y [Price in €/MWh]</center> 
 
@@ -62,7 +62,7 @@ Legend:
 - Predictions (blue dense line) 
 - Upper threshold limit (dashed black line) 
 
-TODO adjust model parameters for improved results and day ahead predictions.
+TODO adjust model parameters for improved results.
 
 ### Cross validation
 Time series cross validation is used to measure the forecast error using historical data. This is done by selecting cutoff points in the history, and for each of them fitting the model using data only up to that cutoff point.  The forecasted values are compared to the actual values.
@@ -82,12 +82,12 @@ __Evaluation metrics:__
 |  Day ahead   |       24     |       24      |     50.09    |      64.45   |
 
 
-Metrics are below the pricings standard deviation of 90.656821, which means they are reasonable, but at the same time the difference is small. Hence the model did derive valuable information from the data, but it can be assumed that there is quite some potential left with dataset preprocessing and model selection. And most importantly the models parameters are just chosen for quick experimentation but not for optimal results for far and need more adjustment.
+Metrics are below the pricings standard deviation of 90.656821, which means they are reasonable, but error metrics are still at quite high level. Hence the model did derive valuable information from the data, but it can be assumed that there is quite some potential left with dataset preprocessing and model selection. And most importantly the models parameters (e.g. sampling strategy) are just chosen for quick experimentation but not for optimal results for far and need more adjustment.
 
 
 ## Optimization Approach
 
-__Task:__ Buy energy cheap and store in batteries to sell at high prices.
+__Task:__ Buy energy at cheap prices and store in batteries, to sell at future higher prices.
 
 ### Problem formalization 
 
