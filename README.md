@@ -18,14 +18,14 @@ Available dataset columns are named are as follows.
 
 - MTU (CET/CEST) -> Time intervals [FROM, TO] in UTC+1 timezone 
 - Day-ahead Price [EUR/MWh] -> Target price column to be predicted 
-- Currency -> Price unit Euro (while constant, assumed to be irrelevant for modeling) 
-- BZN|DE-LU -> Bidding zone Germany/Luxembourg, (irrelevant for modeling) 
+- Currency -> Price unit Euro (irrelevant for modeling) 
+- BZN|DE-LU -> Bidding zone Germany/Luxembourg 
 
 ---
 
 ### Raw time series - visualization
 ![Raw pricing data](./plots/0_raw_prices.png)
-<center>Y [Price in €/MWh]</center>
+_Y [Price in €/MWh]_
 
 - Assumend density pattern change in March in the raw data 
 - Large outlier in early March 
@@ -33,20 +33,20 @@ Available dataset columns are named are as follows.
 
 ### Raw time series - statistics
 ![Raw data statistics](./plots/1_eda_stats.png)
-<center>ds: Time | y: price</center>
+_ds: Time | y: price_
 
 
 ### Sampling distribution
 
 ![hourly sampling histogram](./plots/2_histogram_hourly_distribution.png)
-<center>(Log) Price samples per day historgram</center>
+_(Log) Price samples per day historgram_
 
 ![data gaps](./plots/3_gap_line.png)
-<center>Samples count per day</center>
+_Samples count per day_
 
 Data verification after data cleansing, preprocessing and interpolation. 
 ![hourly distribution](./plots/4_histogram_hours_per_day.png)
-<center>Price samples per day historgram</center>
+_Price samples per day historgram_
 
 ## Forecast model
 __POC parametrization__ 
@@ -54,7 +54,7 @@ __POC parametrization__
 - Horizon in hours $\rightarrow$ prediction step size (how far to predict into the future) 
 - Period in hours $\rightarrow$ number of prediction steps (how often to make predictions) 
 ![predictions](./plots/5_predictions.png) 
-<center>Vertical axis: Y [Price in €/MWh]</center> 
+_Vertical axis: Y [Price in €/MWh]_
 
 Legend: 
 - Historical observations (black dots) 
@@ -68,7 +68,7 @@ TODO adjust model parameters for improved results.
 Time series cross validation is used to measure the forecast error using historical data. This is done by selecting cutoff points in the history, and for each of them fitting the model using data only up to that cutoff point.  The forecasted values are compared to the actual values.
 
 ![Cross validation](./plots/6_cross_validation.png) 
-<center>Prediction & observations over time [Price in €/MWh]</center>
+_Prediction & observations over time [Price in €/MWh]_
 
 Legend: 
 - _y_: Ground truth
@@ -82,7 +82,18 @@ __Evaluation metrics:__
 |  Day ahead   |       24     |       24      |     50.09    |      64.45   |
 
 
-Metrics are below the pricings standard deviation of 90.656821, which means they are reasonable, but error metrics are still at quite high level. Hence the model did derive valuable information from the data, but it can be assumed that there is quite some potential left with dataset preprocessing and model selection. And most importantly the models parameters (e.g. sampling strategy) are just chosen for quick experimentation but not for optimal results for far and need more adjustment.
+Metrics are below the pricings standard deviation of 90.656821, which means they are reasonable, but error metrics are still at quite high level. Hence the model did derive valuable information from the data, but it can be assumed that there is quite some potential left with dataset preprocessing and model selection. And most importantly the models parameters (e.g. sampling strategy) are just chosen for quick experimentation but not for optimal results and need more adjustment.
+
+
+### Review 
+
+Prophet model for time series forecasting is exhausting its capability to handle high frequency, volatile and spiky (non-linear and irregular) patterns from external unkown factors in the data. Alternative modeling approaches like tree based classical (e.g. XGBoost) models or TemporalFusion Transformers might suit the problem better and the achieve higher performance. 
+
+TODO investigate other models 
+
+- XGBoost 
+- TemporalFusionTransformer 
+- Additional features of external dimensions (temporal: holidays, weather, neighboring bidding zones, etc) 
 
 
 ## Optimization Approach
@@ -113,6 +124,10 @@ __State update__ $`SOC_{t+1} = SOC_t + c_t`$
 
 __Optimizable cost function__ $`max ∑_t = price_t * c_t`$
 
+
+TODO
+
+- review implementation 
 
 
 <!-- ## Approach comparison
