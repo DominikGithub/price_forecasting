@@ -8,7 +8,6 @@ import multiprocessing
 # optimize Prophet settings
 n_cores = multiprocessing.cpu_count()
 os.environ["STAN_NUM_THREADS"] = str(n_cores)
-print('CPU cores:', n_cores)
 
 import numpy as np
 import pandas as pd
@@ -21,8 +20,6 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 # compatibility
 import prophet
 import sys
-
-
 
 
 # EDA
@@ -45,10 +42,9 @@ df_clean.ds = df_clean.ds.apply(lambda t: t[:16])
 df_clean.ds = pd.to_datetime(df_clean.ds, format= '%d.%m.%Y %H:%M') # NOTE still in CET not UTC, irrelevant for model for now
 print(df_clean.head())
 
-
 # dataset statistics (keep stats for model configuration)
 train_stats_df = df_clean.describe()
-print(train_stats_df.head())
+print(train_stats_df)
 
 # plot raw price data
 ax1 = df_clean.plot(x='ds', y='y', kind='line', figsize=(16, 5))
@@ -59,7 +55,7 @@ fig1.savefig('./plots/1_raw_prices.png')
 # ------------------------------------------------------------------
 # Validate fundamental assumptions about the dataset
 
-#### investigate varying amount of datapoints over time
+## investigate varying amount of datapoints over time
 dp_density_sr = df_clean.set_index('ds').resample('1d').count()
 
 # plot histogram of hourly (hence 24) data points per day
@@ -78,8 +74,7 @@ missing_df = df_clean.set_index('ds')\
                       .asfreq()\
                       .fillna(np.nan)
 # list missing time slot
-# missing_df[missing_df['y'].isnull()]
-assert missing_df[missing_df['y'].isnull()].empty, 'There are still data gaps in the data'
+print('Missing time slots:', missing_df[missing_df['y'].isnull()].shape[0])
 
 # interpolation missing data point from previous and next neighbors
 dense_df = df_clean.interpolate()
@@ -102,31 +97,30 @@ fig4.savefig('./plots/4_histogram_hours_per_day.png')
 # create seasonal base model
 # set prophet fit 'cap' to 100% of maximum historic price in training dataset
 df_resampled = dense_df.assign(cap=train_stats_df.loc['max', 'y'])
+df_resampled.to_csv('./df_resampled.csv')
 
+# fit model
 m = Prophet()       # mcmc_samples=300  -> NOTE different sampling strategy could increase the result quality, but at the cost of massive runtime complexity surge
 m.fit(df_resampled)
 
-df_resampled.to_csv('./df_resampled.csv')
-
-# num future intervals & max capability +10% (to consider eventual predictions beyond the training data limits up to a restricted level)
+# config prediction
+# num future intervals
 future = m.make_future_dataframe(periods=20)
+# max capability +10% (to consider eventual predictions beyond the training data limits up to a restricted level)
 future['cap'] = train_stats_df.loc['max', 'y'] * 1.1
 
-# prediction past the training dataset (no data validation, but looks logical reasonable as a base model)
+# predict
 fcst = m.predict(future)
+fcst.to_csv('./fcst.csv')
+
+# plot prediction results
 ax5 = fig = m.plot(fcst, figsize=(16, 5))
 fig5 = ax5.get_figure()
 fig5.savefig('./plots/5_predictions.png')
 
-fcst.to_csv('./fcst.csv')
-
-
-# cross validation on timeseries dataset
-df_cv = cross_validation(m, initial='7 days', period='2 hours', horizon='6 hours')              # TODO this shold be 
+##### cross validation
+df_cv = cross_validation(m, initial='120 days', period='24 hours', horizon='24 hours') 
 print(df_cv)
-# NOTE horizon should be 1 hour, but due to lack of computational power, its reduced to half the granularity
-
-
 
 # plot predictions (yhat) over true data (y)
 ax6 = df_cv.plot(x='ds', y=['y', 'yhat'], kind='line', figsize=(16, 6))
@@ -139,8 +133,6 @@ fig6.savefig('./plots/6_cross_validation.png')
 # MAE
 mae = mean_absolute_error(df_cv['y'], df_cv['yhat'])
 print(f"MAE: {mae:.2f}")
-
 # RMSE
 rmse = np.sqrt(mean_squared_error(df_cv['y'], df_cv['yhat']))
 print(f"RMSE: {rmse:.2f}")
-

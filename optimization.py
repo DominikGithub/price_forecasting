@@ -1,5 +1,5 @@
 '''
-Optimization utilizating forecast
+Optimization approach.
 '''
 
 import numpy as np
@@ -55,8 +55,8 @@ fcst = pd.read_csv('./fcst.csv')
 df_resampled = pd.read_csv('./df_resampled.csv')
 
 
-### NOTE Simplification to latest 500 time steps, due to limited available computation
-ts_slicing_len = 500
+### NOTE Simplification to latest 2500 time steps, in favor of faster computation
+ts_slicing_len = 2500
 
 # historic prices
 hist_opt_schedule, hist_opt_profit = get_profit(df_resampled[:ts_slicing_len])
