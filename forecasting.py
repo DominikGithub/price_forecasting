@@ -1,5 +1,7 @@
 '''
-Electricity prices forecasting model.
+Electricity prices prohpet forecasting model.
+
+NOTE prophet does not expect the input time series features to be standardized.
 '''
 
 import os

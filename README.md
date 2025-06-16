@@ -49,7 +49,7 @@ Data verification after data cleansing, preprocessing and interpolation.
 ![hourly distribution](./plots/4_histogram_hours_per_day.png)
 _Price samples per day historgram_
 
-## Forecast model
+## Forecast model (1. Prophet) 
 __POC parametrization__ 
 - Initial window size in days (120) $\rightarrow$ training window (the bigger the better) 
 - Horizon in hours $\rightarrow$ prediction step size (how far to predict into the future) 
@@ -69,14 +69,14 @@ TODO adjust model parameters for improved results.
 Time series cross validation is used to measure the forecast error using historical data. This is done by selecting cutoff points in the history, and for each of them fitting the model using data only up to that cutoff point. The forecasted values (_yhat_) are compared to the actual (_y_) values.
 
 ![Cross validation](./plots/6_cross_validation.png) 
-_Prediction & observations over one month [Price in €/MWh]_
+_Prediction & observations over time for daily forecasts [Price in €/MWh]_
 
 
 __Evaluation metrics__
 | Experiment   | Pred. Period | Pred. Horizon |      MAE     |     RMSE     |
 | ------------ | ------------ | ------------- | ------------ | ------------ |
 |  Next hour   |       1      |       1       |     47.66    |      61.33   |
-|  Day ahead   |       24     |       24      |     50.09    |      64.45   |
+|  Next day    |       24     |       24      |     50.09    |      64.45   |
 
 
 Metrics are below the pricings standard deviation of 90.656821, which means they are reasonable, but error metrics are still at quite high level. Hence the model did derive valuable information from the data, but it can be assumed that there is quite some potential left with dataset preprocessing and model selection. And most importantly the models parameters (e.g. sampling strategy) are just chosen for quick experimentation but not for optimal results and need more adjustment.
@@ -84,13 +84,33 @@ Metrics are below the pricings standard deviation of 90.656821, which means they
 
 #### Review 
 
-Prophet model for time series forecasting is exhausting its capability to handle high frequency, volatile and spiky (non-linear and irregular) patterns from external unkown factors in the data. Alternative modeling approaches like tree based classical (e.g. XGBoost) models or TemporalFusion Transformers might suit the problem better and achieve higher performance. 
+Prophet model for time series forecasting is exhausting its capability to handle high frequency, volatile and spiky (non-linear and irregular) patterns from external unkown factors in the data. Alternative modeling approaches like tree based classical models or TemporalFusion Transformers might suit the problem better and achieve higher performance. 
 
-TODO investigate other models 
 
-- XGBoost 
-- TemporalFusionTransformer 
-- Additional features of external dimensions (temporal: holidays, weather, neighboring bidding zones, etc) 
+## Forecast model (2. XGBoost) 
+Slicing data into 24h long samples manually. 
+
+### Cross validation
+Test set size of 720 June samples.
+
+![Cross validation](./plots/16_xgboost_cross_validation_24.png) 
+_Prediction & observations for daily forecast horizon [Price in €/MWh]_
+
+![Cross validation](./plots/16_xgboost_cross_validation_1.png) 
+_Prediction & observations for hourly forecast horizon [Price in €/MWh]_
+
+
+__Evaluation metrics__
+| Experiment   | Pred. Period | Pred. Horizon |      MAE     |     RMSE     |
+| ------------ | ------------ | ------------- | ------------ | ------------ |
+|  Next hour   |       1      |       1       |     1.05     |      2.68    | 
+|  Next day    |       24     |       24      |     15.21    |      21.94   |
+
+
+
+#### Review 
+The tree based model achieves significantly smaller error metrics on the evaluation sets in both scenarios and handles non saisonale spiky patterns better.
+
 
 
 ## Optimization Approach
@@ -120,11 +140,6 @@ $`c_t < 0 → `$ Discharging/Sell
 __State update__ $`SOC_{t+1} = SOC_t + c_t`$
 
 __Optimizable cost function__ $`max ∑_t = price_t * c_t`$
-
-
-TODO
-
-- review implementation 
 
 
 <!-- ## Approach comparison
