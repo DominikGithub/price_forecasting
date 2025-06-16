@@ -13,8 +13,8 @@ Download as .csv file in various time resolutions.
 
 ## EDA 
 
-### Tabular data annotation overview 
-Available dataset columns are named are as follows.
+### Table annotations 
+Available dataset columns names.
 
 - MTU (CET/CEST) -> Time intervals [FROM, TO] in UTC+1 timezone 
 - Day-ahead Price [EUR/MWh] -> Target price column to be predicted 
@@ -23,7 +23,7 @@ Available dataset columns are named are as follows.
 
 ---
 
-### Raw time series - visualization
+### Market price raw data
 ![Raw pricing data](./plots/0_raw_prices.png)
 _Y [Price in €/MWh]_
 
@@ -31,21 +31,22 @@ _Y [Price in €/MWh]_
 - Large outlier in early March 
 
 
-### Raw time series - statistics
+### Time series statistics
 ![Raw data statistics](./plots/1_eda_stats.png)
 
 _ds: Time | y: Price_
 
 
-### Sampling distribution
+### Sample distribution per day
 
 ![hourly sampling histogram](./plots/2_histogram_hourly_distribution.png)
 _(Log) Price samples per day historgram_
 
+Gap localization over time.
 ![data gaps](./plots/3_gap_line.png)
 _Samples count per day_
 
-Data verification after data cleansing, preprocessing and interpolation. 
+Valid data shape confirmation after cleansing and interpolation.
 ![hourly distribution](./plots/4_histogram_hours_per_day.png)
 _Price samples per day historgram_
 
@@ -55,7 +56,7 @@ __POC parametrization__
 - Horizon in hours $\rightarrow$ prediction step size (how far to predict into the future) 
 - Period in hours $\rightarrow$ number of prediction steps (how often to make predictions) 
 ![predictions](./plots/5_predictions.png) 
-_Vertical axis: Y [Price in €/MWh]_
+_Y [Price in €/MWh] over time_
 
 Legend: 
 - Historical observations (black dots) 
@@ -69,7 +70,7 @@ TODO adjust model parameters for improved results.
 Time series cross validation is used to measure the forecast error using historical data. This is done by selecting cutoff points in the history, and for each of them fitting the model using data only up to that cutoff point. The forecasted values (_yhat_) are compared to the actual (_y_) values.
 
 ![Cross validation](./plots/6_cross_validation.png) 
-_Prediction & observations over time for daily forecasts [Price in €/MWh]_
+_Prediction & observations over time for daily forecast horizon [Price in €/MWh]_
 
 
 __Evaluation metrics__
@@ -91,7 +92,8 @@ Prophet model for time series forecasting is exhausting its capability to handle
 Slicing data into 24h long samples manually. 
 
 ### Cross validation
-Test set size of 720 June samples.
+Test set size of 696 June samples (deducting samples from gap between cross validation splits).
+Two scenarios of hourly and one day ahead forecast horizons.
 
 ![Cross validation](./plots/16_xgboost_cross_validation_24.png) 
 _Prediction & observations for daily forecast horizon [Price in €/MWh]_
