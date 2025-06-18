@@ -7,14 +7,20 @@ Time series public market auction price forecasting. Comparing different predict
 
 #### Results overview
 
-|   Model  |  Horizon  | Art. Feat |  Period  |   Horizon |    MAE   |   RMSE   |
-| -------- | --------- | --------- | -------- | --------- | -------- | -------- |
-|  Prohpet |  Next hour|    No     |     1    |     1     |   47.66  |    61.33 |
-|  Prohpet |  Next day |    No     |     24   |     24    |   50.09  |   64.45  |
-|  XGBoost |  Next hour|    No     |     1    |     1     |  ![15.27](https://img.shields.io/badge/15.27-brightgreen)  | ![21.01](https://img.shields.io/badge/21.01-brightgreen) |
-|  XGBoost |  Next day |    No     |     24   |     24    |  ![46.24](https://img.shields.io/badge/46.24-purple)  | ![62.84](https://img.shields.io/badge/62.84-purple) |
-|  XGBoost |  Next hour|    yes    |     1    |     1     |   17.31  |    24.25 |
-|  XGBoost |  Next day |    yes    |     24   |     24    |   55.49  |    69.56 |
+|   Model  | Art. Feat |  Period  |   Horizon |    MAE   |   RMSE   |
+| -------- | --------- | -------- | --------- | -------- | -------- |
+|  Prohpet |    No     |     1    |     1     |   47.66  |    61.33 |
+|  Prohpet |    No     |     24   |     24    |   50.09  |   64.45  |
+|  XGBoost |    No     |     1    |     1     |   21.08  |  29.37   |
+|  XGBoost |    No     |     24   |     24    |   ![46.24](https://img.shields.io/badge/46.24-purple)  | ![62.84](https://img.shields.io/badge/62.84-purple) |
+|  XGBoost |    yes    |     1    |     1     |   17.21  |    25.54 |
+|  XGBoost |    yes    |     6    |     1     |   ![14.87](https://img.shields.io/badge/14.87-brightgreen)  |    ![20.81](https://img.shields.io/badge/20.81-brightgreen) |
+|  XGBoost |    yes    |     12   |     1     |   15.59  |    21.73 |
+|  XGBoost |    yes    |     24   |     1     |   16.65  |    23.35 |
+|  XGBoost |    yes    |     1    |     24    |   46.32  |    63.47 |
+|  XGBoost |    yes    |     6    |     24    |   47.19  |    64.21 |
+|  XGBoost |    yes    |     12   |     24    |   51.25  |    64.98 |
+|  XGBoost |    yes    |     24   |     24    |   49.48  |    65.98 |
 
 
 ### Quick start 
@@ -127,35 +133,15 @@ _Prediction & observations for daily forecast horizon, no artifical features [Pr
 _Prediction & observations for hourly forecast horizon, no artifical features [Price in €/MWh]_
 
 __XGBoost with extended input feature dimensions__
-<!--
-__Evaluation metrics__
-
-Raw time series data only input
-
-
-| Experiment   | Pred. Period | Pred. Horizon |      MAE     |     RMSE     |
-| ------------ | ------------ | ------------- | ------------ | ------------ |
-|  Next hour   |       1      |       1       |     16.28    |     22.65    | 
-|  Next day    |       24     |       24      |     47.86    |     64.59    | -->
-
-
 ![Cross validation](./plots/16_xgboost_cross_validation_24_afTrue.png) 
 _Prediction & observations for daily forecast horizon, artifical features added [Price in €/MWh]_
 
 ![Cross validation](./plots/16_xgboost_cross_validation_1_afTrue.png) 
 _Prediction & observations for hourly forecast horizon, artifical features added [Price in €/MWh]_
 
-<!--
-Adding artifical (time & leg) features
-| Experiment   | Pred. Period | Pred. Horizon |      MAE     |     RMSE     |
-| ------------ | ------------ | ------------- | ------------ | ------------ |
-|  Next hour   |       1      |       1       |     17.92    |      25.50   |
-|  Next day    |       24     |       24      |     58.43    |      73.11   |
--->
-
 
 #### Review 
-The tree based model achieves significantly smaller error metrics on the evaluation sets for the short term prediction scenario and handles non saisonale spiky patterns better. While the tree based model outperforms the prohpet model on long term predictions on a smaller distance. Data set extension adding artifical feature dimensions, doesn't contribute to the prediction accuracy in neither of the scenarios.
+The tree based model achieves significantly smaller error metrics on the evaluation sets for the short term prediction scenario and handles non saisonale spiky patterns better. While the tree based model outperforms the prohpet model on long term predictions on a smaller distance. Data set extension adding artifical feature dimensions, does only contribute benefitial to the prediction accuracy in the short horizon scenario.
 
 
 ## Optimization Strategy
