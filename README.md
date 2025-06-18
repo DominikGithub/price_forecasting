@@ -102,16 +102,8 @@ Legend:
 ### Test set evaluation 
 Time series cross validation is used to measure the forecast error using historical data. This is done by selecting cutoff points in the history, and for each of them fitting the model using data only up to that cutoff point. The forecasted values (_yhat_) are compared to the actual (_y_) values.
 
-![Cross validation](./plots/6_cross_validation.png) 
+![Test set prohpet](./plots/6_cross_validation.png) 
 _Prediction & observations over time for daily forecast horizon [Price in €/MWh]_
-
-<!--
-__Evaluation metrics__
-| Experiment   | Pred. Period | Pred. Horizon |      MAE     |     RMSE     |
-| ------------ | ------------ | ------------- | ------------ | ------------ |
-|  Next hour   |       1      |       1       |     47.66    |      61.33   |
-|  Next day    |       24     |       24      |     50.09    |      64.45   |-->
-
 
 Metrics are below the pricings standard deviation of 90.656821, which means they are reasonable, but error metrics are still at quite high level. Hence the model did derive valuable information from the data, but it can be assumed that there is quite some potential left with dataset preprocessing and model selection. And most importantly the models parameters (e.g. sampling strategy) are just chosen for quick experimentation but not for optimal results and need more adjustment.
 
@@ -128,18 +120,19 @@ Tree based boosting model for time series forecasting.
 Test set size of 696 June samples (deducting samples from gap between cross validation splits).
 Two scenarios of hourly and one day ahead forecast horizons.
 
-![Cross validation](./plots/16_xgboost_cross_validation_24_afFalse.png) 
+![test set prediction xgboost](./plots/16_xgboost_cross_validation_24_afFalse.png) 
 _Prediction & observations for daily forecast horizon, no artifical features [Price in €/MWh]_
 
-![Cross validation](./plots/16_xgboost_cross_validation_1_afFalse.png) 
+![test set prediction xgboost](./plots/16_xgboost_cross_validation_1_afFalse.png) 
 _Prediction & observations for hourly forecast horizon, no artifical features [Price in €/MWh]_
 
-
+__XGBoost with extended input feature dimensions__
+<!--
 __Evaluation metrics__
 
 Raw time series data only input
 
-<!--
+
 | Experiment   | Pred. Period | Pred. Horizon |      MAE     |     RMSE     |
 | ------------ | ------------ | ------------- | ------------ | ------------ |
 |  Next hour   |       1      |       1       |     16.28    |     22.65    | 
@@ -152,8 +145,9 @@ _Prediction & observations for daily forecast horizon, artifical features added 
 ![Cross validation](./plots/16_xgboost_cross_validation_1_afTrue.png) 
 _Prediction & observations for hourly forecast horizon, artifical features added [Price in €/MWh]_
 
+<!--
 Adding artifical (time & leg) features
-<!--| Experiment   | Pred. Period | Pred. Horizon |      MAE     |     RMSE     |
+| Experiment   | Pred. Period | Pred. Horizon |      MAE     |     RMSE     |
 | ------------ | ------------ | ------------- | ------------ | ------------ |
 |  Next hour   |       1      |       1       |     17.92    |      25.50   |
 |  Next day    |       24     |       24      |     58.43    |      73.11   |
@@ -161,7 +155,7 @@ Adding artifical (time & leg) features
 
 
 #### Review 
-The tree based model achieves significantly smaller error metrics on the evaluation sets for the short term prediction scenario and handles non saisonale spiky patterns better. While the long term predictions improved but not as much. Data set extension adding artifical feature dimensions, doesn't contribute to the prediction accuracy in neither of the two scenarios.
+The tree based model achieves significantly smaller error metrics on the evaluation sets for the short term prediction scenario and handles non saisonale spiky patterns better. While the tree based model outperforms the prohpet model on long term predictions on a smaller distance. Data set extension adding artifical feature dimensions, doesn't contribute to the prediction accuracy in neither of the scenarios.
 
 
 ## Optimization Strategy
