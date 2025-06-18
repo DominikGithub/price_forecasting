@@ -1,8 +1,35 @@
 # Energy Price Forecasting 
+![XGBoost](https://img.shields.io/badge/XGBoost-green) 
+![Prophet](https://img.shields.io/badge/Prophet-yellow) 
+![Python](https://img.shields.io/badge/Python–3.12-blue)
 
-Time series day ahead public market auction price forecasting.
+Time series public market auction price forecasting. Comparing different prediction horizon scenarios, prediction models and contribution of feature engineering.
 
-### Dataset 
+#### Results overview
+
+|   Model  |  Horizon  | Art. Feat |  Period  |   Horizon |    MAE   |   RMSE   |
+| -------- | --------- | --------- | -------- | --------- | -------- | -------- |
+|  Prohpet |  Next hour|    No     |     1    |     1     |   47.66  |    61.33 |
+|  Prohpet |  Next day |    No     |     24   |     24    |   50.09  |   64.45  |
+|  XGBoost |  Next hour|    No     |     1    |     1     |  ![15.27](https://img.shields.io/badge/15.27-brightgreen)  | ![21.01](https://img.shields.io/badge/21.01-brightgreen) |
+|  XGBoost |  Next day |    No     |     24   |     24    |  ![46.24](https://img.shields.io/badge/46.24-purple)  | ![62.84](https://img.shields.io/badge/62.84-purple) |
+|  XGBoost |  Next hour|    yes    |     1    |     1     |   17.31  |    24.25 |
+|  XGBoost |  Next day |    yes    |     24   |     24    |   55.49  |    69.56 |
+
+
+### Quick start 
+```
+git clone ...
+cd price_forecasting
+poetry install
+poetry shell
+(venv) python prophet_forecasting.py   # evaluates Prophet model
+(venv) python tree_forecasting.py      # evaluates XGBoost model
+(venv) python optimization.py          # evaluates optimization strategy
+```
+
+
+## Dataset 
 Hourly electicity prices from public european energy market over a 6 month period time window.
 
 Data sources: 
@@ -16,19 +43,22 @@ Download as .csv file in various time resolutions.
 ### Table annotations 
 Available dataset columns names.
 
-- MTU (CET/CEST) -> Time intervals [FROM, TO] in UTC+1 timezone 
-- Day-ahead Price [EUR/MWh] -> Target price column to be predicted 
-- Currency -> Price unit Euro (irrelevant for modeling) 
-- BZN|DE-LU -> Bidding zone Germany/Luxembourg 
+- MTU (CET/CEST) $\rightarrow$ Time intervals [FROM, TO] in UTC+1 timezone 
+- Day-ahead Price [EUR/MWh] $\rightarrow$ Target price column to be predicted 
+- Currency $\rightarrow$ Price unit Euro (irrelevant for modeling) 
+- BZN|DE-LU $\rightarrow$ Bidding zone Germany/Luxembourg 
 
 ---
 
-### Market price raw data
-![Raw pricing data](./plots/0_raw_prices.png)
-_Y [Price in €/MWh]_
+### Market price raw data 
+Electricity price of the public auction market.
 
-- Assumend density pattern change in March in the raw data 
-- Large outlier in early March 
+![Raw pricing data](./plots/0_raw_prices.png)
+_Y Price [€/MWh] & ds [hour]_
+
+__Observations__ 
+- Noisy short term variability, next to long term repetitive cyclic patterns 
+- External factors seems to cause unusual large outlier in early March 
 
 
 ### Time series statistics
@@ -37,7 +67,7 @@ _Y [Price in €/MWh]_
 _ds: Time | y: Price_
 
 
-### Sample distribution per day
+### Preprocessing daily sample distribution 
 
 ![hourly sampling histogram](./plots/2_histogram_hourly_distribution.png)
 _(Log) Price samples per day historgram_
@@ -46,9 +76,14 @@ Gap localization over time.
 ![data gaps](./plots/3_gap_line.png)
 _Samples count per day_
 
-Valid data shape confirmation after cleansing and interpolation.
-![hourly distribution](./plots/4_histogram_hours_per_day.png)
-_Price samples per day historgram_
+Data cleansing by interpolation over small time step gaps for a clean training dataset.
+
+#### Feature engineering 
+Two situations with regards to the feature dimensions have been compared for the XGBoost. Raw time series only as feature input, in constrast to extracting additional common metrics from the price.
+
+![Raw pricing data](./plots/21_features.png)
+_Features over time_
+
 
 ## Forecast model (1. Prophet) 
 __POC parametrization__ 
@@ -64,20 +99,18 @@ Legend:
 - Predictions (blue dense line) 
 - Upper threshold limit (dashed black line) 
 
-TODO adjust model parameters for improved results.
-
-### Cross validation
+### Test set evaluation 
 Time series cross validation is used to measure the forecast error using historical data. This is done by selecting cutoff points in the history, and for each of them fitting the model using data only up to that cutoff point. The forecasted values (_yhat_) are compared to the actual (_y_) values.
 
 ![Cross validation](./plots/6_cross_validation.png) 
 _Prediction & observations over time for daily forecast horizon [Price in €/MWh]_
 
-
+<!--
 __Evaluation metrics__
 | Experiment   | Pred. Period | Pred. Horizon |      MAE     |     RMSE     |
 | ------------ | ------------ | ------------- | ------------ | ------------ |
 |  Next hour   |       1      |       1       |     47.66    |      61.33   |
-|  Next day    |       24     |       24      |     50.09    |      64.45   |
+|  Next day    |       24     |       24      |     50.09    |      64.45   |-->
 
 
 Metrics are below the pricings standard deviation of 90.656821, which means they are reasonable, but error metrics are still at quite high level. Hence the model did derive valuable information from the data, but it can be assumed that there is quite some potential left with dataset preprocessing and model selection. And most importantly the models parameters (e.g. sampling strategy) are just chosen for quick experimentation but not for optimal results and need more adjustment.
@@ -85,37 +118,53 @@ Metrics are below the pricings standard deviation of 90.656821, which means they
 
 #### Review 
 
-Prophet model for time series forecasting is exhausting its capability to handle high frequency, volatile and spiky (non-linear and irregular) patterns from external unkown factors in the data. Alternative modeling approaches like tree based classical models or TemporalFusion Transformers might suit the problem better and achieve higher performance. 
+Prophet model for time series forecasting is exhausting its capability to handle high frequency, volatile and irregular patterns from external unkown factors in the data. Alternative modeling approaches like tree based classical models or TimesNet might suit the problem better and achieve higher performance.
 
 
 ## Forecast model (2. XGBoost) 
-Slicing data into 24h long samples manually. 
+Tree based boosting model for time series forecasting. 
 
-### Cross validation
+### Test set evaluation  
 Test set size of 696 June samples (deducting samples from gap between cross validation splits).
 Two scenarios of hourly and one day ahead forecast horizons.
 
-![Cross validation](./plots/16_xgboost_cross_validation_24.png) 
-_Prediction & observations for daily forecast horizon [Price in €/MWh]_
+![Cross validation](./plots/16_xgboost_cross_validation_24_afFalse.png) 
+_Prediction & observations for daily forecast horizon, no artifical features [Price in €/MWh]_
 
-![Cross validation](./plots/16_xgboost_cross_validation_1.png) 
-_Prediction & observations for hourly forecast horizon [Price in €/MWh]_
+![Cross validation](./plots/16_xgboost_cross_validation_1_afFalse.png) 
+_Prediction & observations for hourly forecast horizon, no artifical features [Price in €/MWh]_
 
 
 __Evaluation metrics__
+
+Raw time series data only input
+
+<!--
 | Experiment   | Pred. Period | Pred. Horizon |      MAE     |     RMSE     |
 | ------------ | ------------ | ------------- | ------------ | ------------ |
-|  Next hour   |       1      |       1       |     1.05     |      2.68    | 
-|  Next day    |       24     |       24      |     15.21    |      21.94   |
+|  Next hour   |       1      |       1       |     16.28    |     22.65    | 
+|  Next day    |       24     |       24      |     47.86    |     64.59    | -->
 
+
+![Cross validation](./plots/16_xgboost_cross_validation_24_afTrue.png) 
+_Prediction & observations for daily forecast horizon, artifical features added [Price in €/MWh]_
+
+![Cross validation](./plots/16_xgboost_cross_validation_1_afTrue.png) 
+_Prediction & observations for hourly forecast horizon, artifical features added [Price in €/MWh]_
+
+Adding artifical (time & leg) features
+<!--| Experiment   | Pred. Period | Pred. Horizon |      MAE     |     RMSE     |
+| ------------ | ------------ | ------------- | ------------ | ------------ |
+|  Next hour   |       1      |       1       |     17.92    |      25.50   |
+|  Next day    |       24     |       24      |     58.43    |      73.11   |
+-->
 
 
 #### Review 
-The tree based model achieves significantly smaller error metrics on the evaluation sets in both scenarios and handles non saisonale spiky patterns better.
+The tree based model achieves significantly smaller error metrics on the evaluation sets for the short term prediction scenario and handles non saisonale spiky patterns better. While the long term predictions improved but not as much. Data set extension adding artifical feature dimensions, doesn't contribute to the prediction accuracy in neither of the two scenarios.
 
 
-
-## Optimization Approach
+## Optimization Strategy
 
 __Task:__ Buy energy at cheap prices and store in batteries, to sell at future higher prices.
 

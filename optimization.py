@@ -1,5 +1,5 @@
 '''
-Optimization approach.
+Evaluate battery trading optimization strategy.
 '''
 
 import numpy as np
