@@ -11,7 +11,7 @@ import itertools
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
 from sklearn.preprocessing import StandardScaler
 from xgboost import XGBRegressor
 import xgboost as xgb
@@ -179,6 +179,10 @@ print(f"MAE: {mae:.2f}")
 # RMSE
 rmse = np.sqrt(mean_squared_error(Y_test, y_pred))
 print(f"RMSE: {rmse:.2f}")
+# MAPE
+mape = mean_absolute_percentage_error(Y_test, y_pred)
+print(f"MAPE: {mape:.2f}")
+
 
 ## Plot predictions (y_pred) over true data (y_true)
 eval_df = pd.DataFrame.from_dict({'y_true':Y_test, 'y_pred':y_pred, 'day':test_df.index[N_STEPS_SAMPLE_LEN*n_features:]})

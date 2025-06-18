@@ -7,20 +7,20 @@ Time series public market auction price forecasting. Comparing different predict
 
 #### Results overview
 
-|   Model  | Art. Feat |  Period  |   Horizon |    MAE   |   RMSE   |
-| -------- | --------- | -------- | --------- | -------- | -------- |
-|  Prohpet |    No     |     1    |     1     |   47.66  |    61.33 |
-|  Prohpet |    No     |     24   |     24    |   50.09  |   64.45  |
-|  XGBoost |    No     |     1    |     1     |   21.08  |  29.37   |
-|  XGBoost |    No     |     24   |     24    |   ![46.24](https://img.shields.io/badge/46.24-purple)  | ![62.84](https://img.shields.io/badge/62.84-purple) |
-|  XGBoost |    yes    |     1    |     1     |   17.21  |    25.54 |
-|  XGBoost |    yes    |     6    |     1     |   ![14.87](https://img.shields.io/badge/14.87-brightgreen)  |    ![20.81](https://img.shields.io/badge/20.81-brightgreen) |
-|  XGBoost |    yes    |     12   |     1     |   15.59  |    21.73 |
-|  XGBoost |    yes    |     24   |     1     |   16.65  |    23.35 |
-|  XGBoost |    yes    |     1    |     24    |   46.32  |    63.47 |
-|  XGBoost |    yes    |     6    |     24    |   47.19  |    64.21 |
-|  XGBoost |    yes    |     12   |     24    |   51.25  |    64.98 |
-|  XGBoost |    yes    |     24   |     24    |   49.48  |    65.98 |
+|   Model  | Art. Feat |  Period [h] |   Horizon [h] |    MAE   |   RMSE   |
+| -------- | --------- | ----------- | ------------- | -------- | -------- |
+|  Prohpet |    No     |      1      |       1       |   47.66  |   61.33 |
+|  Prohpet |    No     |      24     |       24      |   50.09  |   64.45  |
+|  XGBoost |    No     |      1      |       1       |   21.08  |  29.37   |
+|  XGBoost |    No     |      24     |       24      |   ![46.24](https://img.shields.io/badge/46.24-purple)  | ![62.84](https://img.shields.io/badge/62.84-purple) |
+|  XGBoost |    Yes    |      1      |       1       |   17.21  |    25.54 |
+|  XGBoost |    Yes    |      6      |       1       |   ![14.87](https://img.shields.io/badge/14.87-brightgreen)  |    ![20.81](https://img.shields.io/badge/20.81-brightgreen) |
+|  XGBoost |    Yes    |      12     |       1       |   15.59  |    21.73 |
+|  XGBoost |    Yes    |      24     |       1       |   16.65  |    23.35 |
+|  XGBoost |    Yes    |      1      |       24      |   46.32  |    63.47 |
+|  XGBoost |    Yes    |      6      |       24      |   47.19  |    64.21 |
+|  XGBoost |    Yes    |      12     |       24      |   51.25  |    64.98 |
+|  XGBoost |    Yes    |      24     |       24      |   49.48  |    65.98 |
 
 
 ### Quick start 
@@ -141,7 +141,7 @@ _Prediction & observations for hourly forecast horizon, artifical features added
 
 
 #### Review 
-The tree based model achieves significantly smaller error metrics on the evaluation sets for the short term prediction scenario and handles non saisonale spiky patterns better. While the tree based model outperforms the prohpet model on long term predictions on a smaller distance. Data set extension adding artifical feature dimensions, does only contribute benefitial to the prediction accuracy in the short horizon scenario.
+The tree based model achieves significantly smaller error metrics on the evaluation sets for the short term prediction scenario and handles non saisonale spiky patterns better. While the tree based model outperforms the prohpet model on long term predictions on a smaller distance. Data set extension adding artifical feature dimensions, does only contribute benefitial to the prediction accuracy in the short horizon scenarion.
 
 
 ## Optimization Strategy
