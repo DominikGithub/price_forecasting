@@ -13,9 +13,11 @@ Time series public market auction price forecasting. Comparing different predict
 |  Prohpet |    No     |      1      |       1       |   47.66  |   61.33  |
 |  Prohpet |    No     |      24     |       24      |   50.09  |   64.45  |
 |  XGBoost |    No     |      1      |       1       |   21.08  |   29.37  |
+|  XGBoost |    No     |      6      |       1       |   16.82  |   24.28  |
+|  XGBoost |    No     |      24     |       1       |   15.27  |   21.01  |
+|  XGBoost |    No     |      1      |       24      |   43.15  |   59.91  |
 |  XGBoost |    No     |      6      |       24      |   46.72  |   64.49  |
 |  XGBoost |    No     |      24     |       24      |   46.24  |   62.84  |
-|  XGBoost |    No     |      6      |       1       |   16.82  |   24.28  |
 |  XGBoost |    Yes    |      1      |       1       |   17.21  |   25.54  |
 |  XGBoost |    Yes    |      6      |       1       |   14.87  |   20.81  |
 |  XGBoost |    Yes    |      24     |       1       |   16.65  |   23.35  |
@@ -24,10 +26,14 @@ Time series public market auction price forecasting. Comparing different predict
 |  XGBoost |    Yes    |      24     |       24      |   49.48  |   65.98  |
 | CatBoost |    No     |      1      |       1       |   20.88  |   29.26  |
 | CatBoost |    No     |      6      |       1       |   15.84  |   23.37  |
+| CatBoost |    No     |      24     |       1       |   14.58  |   20.72  |
 | CatBoost |    No     |      6      |       24      |   43.43  |   61.04  |
 | CatBoost |    No     |      24     |       24      |   44.10  |   59.13  |
+| CatBoost |    No     |      1      |       24      |   42.30  |   58.95  |
 | CatBoost |    Yes    |      1      |       1       |   16.12  |   23.80  |
 | CatBoost |    Yes    |      6      |       1       |   ![14.40](https://img.shields.io/badge/14.40-brightgreen)  |  ![20.19](https://img.shields.io/badge/20.19-brightgreen) |
+| CatBoost |    Yes    |      24     |       1       |   15.08  |   21.46  |
+| CatBoost |    Yes    |      1      |       24      |   43.16  |   60.62  |
 | CatBoost |    Yes    |      6      |       24      |   44.40  |   59.07  |
 | CatBoost |    Yes    |      24     |       24      |   ![42.03](https://img.shields.io/badge/42.03-purple)  |  ![58.99](https://img.shields.io/badge/58.99-purple)  |
 
