@@ -1,5 +1,5 @@
 '''
-Electricity prices prohpet forecasting model.
+Electricity prices prohpet forecasting base model.
 
 NOTE prophet does not expect the input time series features to be standardized.
 '''

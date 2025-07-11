@@ -1,27 +1,35 @@
 # Energy Price Forecasting 
-![XGBoost](https://img.shields.io/badge/XGBoost-green) 
+![CatBoost](https://img.shields.io/badge/CatBoost-yellow) 
+![XGBoost](https://img.shields.io/badge/XGBoost-yellow) 
 ![Prophet](https://img.shields.io/badge/Prophet-yellow) 
 ![Python](https://img.shields.io/badge/Python–3.12-blue)
 
-Time series public market auction price forecasting. Comparing different prediction horizon scenarios, prediction models and contribution of feature engineering.
+Time series public market auction price forecasting. Comparing different prediction horizon scenarios (hourly and daily), prediction models and contribution of feature engineering.
 
 #### Results overview
 
 |   Model  | Art. Feat |  Period [h] |   Horizon [h] |    MAE   |   RMSE   |
 | -------- | --------- | ----------- | ------------- | -------- | -------- |
-|  Prohpet |    No     |      1      |       1       |   47.66  |   61.33 |
+|  Prohpet |    No     |      1      |       1       |   47.66  |   61.33  |
 |  Prohpet |    No     |      24     |       24      |   50.09  |   64.45  |
-|  XGBoost |    No     |      1      |       1       |   21.08  |  29.37   |
-|  XGBoost |    No     |      24     |       24      |   ![46.24](https://img.shields.io/badge/46.24-purple)  | ![62.84](https://img.shields.io/badge/62.84-purple) |
-|  XGBoost |    Yes    |      1      |       1       |   17.21  |    25.54 |
-|  XGBoost |    Yes    |      6      |       1       |   ![14.87](https://img.shields.io/badge/14.87-brightgreen)  |    ![20.81](https://img.shields.io/badge/20.81-brightgreen) |
-|  XGBoost |    Yes    |      12     |       1       |   15.59  |    21.73 |
-|  XGBoost |    Yes    |      24     |       1       |   16.65  |    23.35 |
-|  XGBoost |    Yes    |      1      |       24      |   46.32  |    63.47 |
-|  XGBoost |    Yes    |      6      |       24      |   47.19  |    64.21 |
-|  XGBoost |    Yes    |      12     |       24      |   51.25  |    64.98 |
-|  XGBoost |    Yes    |      24     |       24      |   49.48  |    65.98 |
-
+|  XGBoost |    No     |      1      |       1       |   21.08  |   29.37  |
+|  XGBoost |    No     |      6      |       24      |   46.72  |   64.49  |
+|  XGBoost |    No     |      24     |       24      |   46.24  |   62.84  |
+|  XGBoost |    No     |      6      |       1       |   16.82  |   24.28  |
+|  XGBoost |    Yes    |      1      |       1       |   17.21  |   25.54  |
+|  XGBoost |    Yes    |      6      |       1       |   14.87  |   20.81  |
+|  XGBoost |    Yes    |      24     |       1       |   16.65  |   23.35  |
+|  XGBoost |    Yes    |      1      |       24      |   46.32  |   63.47  |
+|  XGBoost |    Yes    |      6      |       24      |   47.19  |   64.21  |
+|  XGBoost |    Yes    |      24     |       24      |   49.48  |   65.98  |
+| CatBoost |    No     |      1      |       1       |   20.88  |   29.26  |
+| CatBoost |    No     |      6      |       1       |   15.84  |   23.37  |
+| CatBoost |    No     |      6      |       24      |   43.43  |   61.04  |
+| CatBoost |    No     |      24     |       24      |   44.10  |   59.13  |
+| CatBoost |    Yes    |      1      |       1       |   16.12  |   23.80  |
+| CatBoost |    Yes    |      6      |       1       |   ![14.40](https://img.shields.io/badge/14.40-brightgreen)  |  ![20.19](https://img.shields.io/badge/20.19-brightgreen) |
+| CatBoost |    Yes    |      6      |       24      |   44.40  |   59.07  |
+| CatBoost |    Yes    |      24     |       24      |   ![42.03](https://img.shields.io/badge/42.03-purple)  |  ![58.99](https://img.shields.io/badge/58.99-purple)  |
 
 ### Quick start 
 ```
@@ -29,9 +37,9 @@ git clone ...
 cd price_forecasting
 poetry install
 poetry shell
-(venv) python prophet_forecasting.py   # evaluates Prophet model
-(venv) python tree_forecasting.py      # evaluates XGBoost model
-(venv) python optimization.py          # evaluates optimization strategy
+(venv) python prophet_forecasting.py                            # evaluates Prophet model
+(venv) python tree_forecasting.py -m catboost -l 24 -z 24       # evaluates tree based models
+(venv) python optimization.py                                   # evaluates optimization strategy
 ```
 
 
@@ -82,7 +90,7 @@ Gap localization over time.
 ![data gaps](./plots/3_gap_line.png)
 _Samples count per day_
 
-Data cleansing by interpolation over small time step gaps for a clean training dataset.
+Data cleansing by interpolation over small time step gaps.
 
 #### Feature engineering 
 Two situations with regards to the feature dimensions have been compared for the XGBoost. Raw time series only as feature input, in constrast to extracting additional common metrics from the price.
@@ -95,7 +103,7 @@ _Features over time_
 __POC parametrization__ 
 - Initial window size in days (120) $\rightarrow$ training window (the bigger the better) 
 - Horizon in hours $\rightarrow$ prediction step size (how far to predict into the future) 
-- Period in hours $\rightarrow$ number of prediction steps (how often to make predictions) 
+- Period in hours $\rightarrow$ number of prediction steps 
 ![predictions](./plots/5_predictions.png) 
 _Y [Price in €/MWh] over time_
 
@@ -116,11 +124,11 @@ Metrics are below the pricings standard deviation of 90.656821, which means they
 
 #### Review 
 
-Prophet model for time series forecasting is exhausting its capability to handle high frequency, volatile and irregular patterns from external unkown factors in the data. Alternative modeling approaches like tree based classical models or TimesNet might suit the problem better and achieve higher performance.
+Prophet model for time series forecasting is exhausting its capability to handle high frequency, volatile from external unkown factors in the data and struggles to model irregular patterns.
 
 
 ## Forecast model (2. XGBoost) 
-Tree based boosting model for time series forecasting. 
+Boosting (unbalanced) tree based regression model for time series forecasting. 
 
 ### Test set evaluation  
 Test set size of 696 June samples (deducting samples from gap between cross validation splits).
@@ -133,15 +141,41 @@ _Prediction & observations for daily forecast horizon, no artifical features [Pr
 _Prediction & observations for hourly forecast horizon, no artifical features [Price in €/MWh]_
 
 __XGBoost with extended input feature dimensions__
-![Cross validation](./plots/16_xgboost_cross_validation_24_afTrue.png) 
+![test set prediction xgboost](./plots/16_xgboost_cross_validation_24_afTrue.png) 
 _Prediction & observations for daily forecast horizon, artifical features added [Price in €/MWh]_
 
-![Cross validation](./plots/16_xgboost_cross_validation_1_afTrue.png) 
+![test set prediction xgboost](./plots/16_xgboost_cross_validation_1_afTrue.png) 
 _Prediction & observations for hourly forecast horizon, artifical features added [Price in €/MWh]_
 
 
 #### Review 
-The tree based model achieves significantly smaller error metrics on the evaluation sets for the short term prediction scenario and handles non saisonale spiky patterns better. While the tree based model outperforms the prohpet model on long term predictions on a smaller distance. Data set extension adding artifical feature dimensions, does only contribute benefitial to the prediction accuracy in the short horizon scenarion.
+The XGBoost model achieves significantly smaller error metrics on the evaluation sets for the short term prediction scenario and handles non saisonale spiky patterns better. While the tree based model outperforms the prohpet model on long term predictions on a smaller distance. Data set extension adding artifical feature dimensions, does only contribute benefitial to the prediction accuracy in the short horizon scenario.
+
+
+## Forecast model (3. CatBoost) 
+CatBoost is known to excel even without extensive hyperparameter optimization building symmetric trees. 
+
+### Test set evaluation  
+Test set size of 696 June samples (deducting samples from gap between cross validation splits).
+Two scenarios of hourly and one day ahead forecast horizons.
+
+![test set prediction catboost](./plots/16_catboost_cross_validation_24_afFalse.png) 
+_Prediction & observations for daily forecast horizon, no artifical features [Price in €/MWh]_
+
+![test set prediction catboost](./plots/16_catboost_cross_validation_1_afFalse.png) 
+_Prediction & observations for hourly forecast horizon, no artifical features [Price in €/MWh]_
+
+__CatBoost with extended input feature dimensions__
+![test set prediction catboost](./plots/16_catboost_cross_validation_24_afTrue.png) 
+_Prediction & observations for daily forecast horizon, artifical features added [Price in €/MWh]_
+
+![test set prediction catboost](./plots/16_catboost_cross_validation_1_afTrue.png) 
+_Prediction & observations for hourly forecast horizon, artifical features added [Price in €/MWh]_
+
+#### Review 
+Catboost outperforms XGBoost slightly and Prophet forecasting scenario. In contrast to XGboost it benefits from extended feature dimension even in small dataset challenges.
+
+Overall it can be observed that the fitting effort for tree based models are multiple magnitudes smaller, than for non tree-based additive regression models like Prohpet. While both tree model approaches also achieved better results on the test set for energy price forecasting. 
 
 
 ## Optimization Strategy

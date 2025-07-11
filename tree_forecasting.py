@@ -8,11 +8,14 @@ Targets are not standardized.
 import os
 import multiprocessing as mp
 import itertools
+import argparse
+from distutils.util import strtobool
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
 from sklearn.preprocessing import StandardScaler
+from catboost import CatBoostRegressor
 from xgboost import XGBRegressor
 import xgboost as xgb
 
@@ -20,12 +23,18 @@ import xgboost as xgb
 ###############################################
 # Adjust experiment parameters
 ###############################################
+parser = argparse.ArgumentParser('Tree_regressor')
+parser.add_argument('-m', "--model", type=str, default='catboost')
+parser.add_argument('-l', "--length" , type=int, default=24)
+parser.add_argument('-z', "--horizon", type=int, default=24)
+parser.add_argument('-f', "--feature", type=lambda x: bool(strtobool(x)), default=False)
+args = parser.parse_args()
 
+    
 # add artificial time and leg features
-DO_EXTEND_FEATURES = False
-
-N_STEPS_PRED_HORIZON = 24
-N_STEPS_SAMPLE_LEN = 24
+DO_EXTEND_FEATURES = args.feature
+N_STEPS_PRED_HORIZON = args.horizon
+N_STEPS_SAMPLE_LEN = args.length
 
 ###############################################
 
@@ -145,9 +154,12 @@ scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-######## XGBoost model
-xgb_clf = XGBRegressor()
-xgb_clf.max_depth = 5
+#### model
+if args.model == 'xgboost':
+    xgb_clf = XGBRegressor()
+    xgb_clf.max_depth = 5
+elif args.model == 'catboost':
+    xgb_clf = CatBoostRegressor()
 xgb_clf.fit(X_train, Y_train)
 
 
@@ -166,6 +178,7 @@ xgb_clf.fit(X_train, Y_train)
 
 ###############################
 ## settings
+print('Model:', args.model)
 print('Prediction horizon:', N_STEPS_PRED_HORIZON, 'hours')
 print('Sample length:', N_STEPS_SAMPLE_LEN, 'hours')
 print('Artifical features:', DO_EXTEND_FEATURES)
@@ -188,4 +201,4 @@ print(f"MAPE: {mape:.2f}")
 eval_df = pd.DataFrame.from_dict({'y_true':Y_test, 'y_pred':y_pred, 'day':test_df.index[N_STEPS_SAMPLE_LEN*n_features:]})
 ax = eval_df.plot(x='day', y=['y_true', 'y_pred'], kind='line', figsize=(16, 6))
 fig = ax.get_figure()
-fig.savefig(f'./plots/16_xgboost_cross_validation_{N_STEPS_PRED_HORIZON}_af{DO_EXTEND_FEATURES}.png')
+fig.savefig(f'./plots/16_{args.model}_cross_validation_{N_STEPS_PRED_HORIZON}_af{DO_EXTEND_FEATURES}.png')
