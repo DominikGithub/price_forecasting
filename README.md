@@ -99,7 +99,7 @@ _Samples count per day_
 Data cleansing by interpolation over small time step gaps.
 
 #### Feature engineering 
-Two situations with regards to the feature dimensions have been compared for the XGBoost. Raw time series only as feature input, in constrast to extracting additional common metrics from the price.
+Two situations with regards to the feature dimensions have been compared for the tree models. Raw time series only as feature input, in contrast to extracting additional common metrics from the price.
 
 ![Raw pricing data](./plots/21_features.png)
 _Features over time_

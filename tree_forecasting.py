@@ -1,23 +1,19 @@
 '''
 Electricity prices tree based forecasting model.
 
-NOTE in contrast to Prohpet library, the XGBoost models input features do require standardization.
-Targets are not standardized.
+Tree-based models (XGBoost, CatBoost) are invariant to feature scaling.
 '''
 
 import os
 import multiprocessing as mp
 import itertools
 import argparse
-from distutils.util import strtobool
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
-from sklearn.preprocessing import StandardScaler
 from catboost import CatBoostRegressor
 from xgboost import XGBRegressor
-import xgboost as xgb
 
 
 ###############################################
@@ -27,7 +23,7 @@ parser = argparse.ArgumentParser('Tree_regressor')
 parser.add_argument('-m', "--model", type=str, default='catboost')
 parser.add_argument('-l', "--length" , type=int, default=24)
 parser.add_argument('-z', "--horizon", type=int, default=24)
-parser.add_argument('-f', "--feature", type=lambda x: bool(strtobool(x)), default=False)
+parser.add_argument('-f', "--feature", action=argparse.BooleanOptionalAction, default=False)
 args = parser.parse_args()
 
     
@@ -98,11 +94,11 @@ if DO_EXTEND_FEATURES:
     fig = ax.get_figure()
     fig.savefig(f'./plots/21_features.png')
 
-n_features = clean_df.shape[1]-1 # -1 for the target next to feature columns
+n_features = clean_df.shape[1]-1  # -1 for the target next to feature columns
 print('# features:', n_features)
 
 
-#### cross valdiation split NOTE last month June as test dataset
+#### cross validation split NOTE last month June as test dataset
 train_df = clean_df.loc[clean_df.index < '2022-06-01 00:00:00']
 test_df = clean_df.loc[clean_df.index >= '2022-06-01 00:00:00']
 
@@ -148,11 +144,6 @@ Y_train = np.array([sa[-1] for sa in XY_train])
 X_test = np.array([sa[:-1] for sa in XY_test])
 Y_test = np.array([sa[-1] for sa in XY_test])
 
-
-# standardization
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
 
 #### model
 if args.model == 'xgboost':
