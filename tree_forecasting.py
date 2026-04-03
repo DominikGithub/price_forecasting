@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
 from catboost import CatBoostRegressor
 from xgboost import XGBRegressor
+from lightgbm import LGBMRegressor
 
 
 ###############################################
@@ -147,11 +148,15 @@ Y_test = np.array([sa[-1] for sa in XY_test])
 
 #### model
 if args.model == 'xgboost':
-    xgb_clf = XGBRegressor()
-    xgb_clf.max_depth = 5
+    model = XGBRegressor()
+    model.max_depth = 5
 elif args.model == 'catboost':
-    xgb_clf = CatBoostRegressor()
-xgb_clf.fit(X_train, Y_train)
+    model = CatBoostRegressor()
+elif args.model == 'lightgbm':
+    model = LGBMRegressor(verbosity=-1)
+else:
+    raise ValueError(f"Unknown model: {args.model}. Available: xgboost, catboost, lightgbm")
+model.fit(X_train, Y_train)
 
 
 # #### plot feature importance for trained model
@@ -176,7 +181,7 @@ print('Artifical features:', DO_EXTEND_FEATURES)
 # print('Model scores:', xgb_clf.get_booster().get_score())
 ## Evaluation
 # predict on test set
-y_pred = xgb_clf.predict(X_test)
+y_pred = model.predict(X_test)
 # MAE
 mae = mean_absolute_error(Y_test, y_pred)
 print(f"MAE: {mae:.2f}")

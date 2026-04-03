@@ -1,5 +1,13 @@
 report.zip
 
+# Generated prediction files
+predictions_*.csv
+fcst.csv
+df_resampled.csv
+
+# CatBoost training info
+catboost_info/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

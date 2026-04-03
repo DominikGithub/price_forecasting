@@ -1,6 +1,7 @@
 # Energy Price Forecasting 
 ![CatBoost](https://img.shields.io/badge/CatBoost-yellow) 
 ![XGBoost](https://img.shields.io/badge/XGBoost-yellow) 
+![LightGBM](https://img.shields.io/badge/LightGBM-yellow) 
 ![Prophet](https://img.shields.io/badge/Prophet-yellow) 
 ![Python](https://img.shields.io/badge/Python–3.12-blue)
 
@@ -10,8 +11,8 @@ Time series public market auction price forecasting. Comparing different predict
 
 |   Model  | Art. Feat |  Period [h] |   Horizon [h] |    MAE   |   RMSE   |
 | -------- | --------- | ----------- | ------------- | -------- | -------- |
-|  Prohpet |    No     |      1      |       1       |   47.66  |   61.33  |
-|  Prohpet |    No     |      24     |       24      |   50.09  |   64.45  |
+|  Prophet |    No     |      1      |       1       |   47.66  |   61.33  |
+|  Prophet |    No     |      24     |       24      |   50.09  |   64.45  |
 |  XGBoost |    No     |      1      |       1       |   21.08  |   29.37  |
 |  XGBoost |    No     |      6      |       1       |   16.82  |   24.28  |
 |  XGBoost |    No     |      24     |       1       |   15.27  |   21.01  |
@@ -27,15 +28,19 @@ Time series public market auction price forecasting. Comparing different predict
 | CatBoost |    No     |      1      |       1       |   20.88  |   29.26  |
 | CatBoost |    No     |      6      |       1       |   15.84  |   23.37  |
 | CatBoost |    No     |      24     |       1       |   14.58  |   20.72  |
+| CatBoost |    No     |      1      |       24      |   42.30  |   58.95  |
 | CatBoost |    No     |      6      |       24      |   43.43  |   61.04  |
 | CatBoost |    No     |      24     |       24      |   44.10  |   59.13  |
-| CatBoost |    No     |      1      |       24      |   42.30  |   58.95  |
 | CatBoost |    Yes    |      1      |       1       |   16.12  |   23.80  |
 | CatBoost |    Yes    |      6      |       1       |   ![14.40](https://img.shields.io/badge/14.40-brightgreen)  |  ![20.19](https://img.shields.io/badge/20.19-brightgreen) |
 | CatBoost |    Yes    |      24     |       1       |   15.08  |   21.46  |
 | CatBoost |    Yes    |      1      |       24      |   43.16  |   60.62  |
 | CatBoost |    Yes    |      6      |       24      |   44.40  |   59.07  |
 | CatBoost |    Yes    |      24     |       24      |   ![42.03](https://img.shields.io/badge/42.03-purple)  |  ![58.99](https://img.shields.io/badge/58.99-purple)  |
+| LightGBM |    No     |      6      |       1       |   16.52  |   25.62  |
+| LightGBM |    No     |      24     |       24      |   43.47  |   59.39  |
+| LightGBM |    Yes    |      6      |       1       |   17.01  |   26.13  |
+| LightGBM |    Yes    |      24     |       24      |   44.79  |   62.75  |
 
 ### Quick start 
 ```
@@ -44,7 +49,8 @@ cd price_forecasting
 poetry install
 poetry shell
 (venv) python prophet_forecasting.py                            # evaluates Prophet model
-(venv) python tree_forecasting.py -m catboost -l 24 -z 24       # evaluates tree based models
+(venv) python tree_forecasting.py -m catboost -l 24 -z 24       # evaluates tree based models (catboost, xgboost, lightgbm)
+(venv) python calculate_profit.py                               # calculate trading profit for all models
 (venv) python optimization.py                                   # evaluates optimization strategy
 ```
 
@@ -212,12 +218,44 @@ __State update__ $`SOC_{t+1} = SOC_t + c_t`$
 
 __Optimizable cost function__ $`max ∑_t = price_t * c_t`$
 
+### Optimization Results
 
-<!-- ## Approach comparison
+Using Linear Programming, we calculate profit by buying low (charging) and selling high (discharging).
 
-Historic prices profit: 21616.323853726
+| Model | Total Profit | Avg Profit | vs Perfect |
+|-------|-------------|------------|-----------|
+| Perfect foresight | 5,894.65 € | 9.82 €/MWh | - |
+| XGBoost (24h) | 9,702.07 € | 16.17 €/MWh | +65% |
+| LightGBM (24h) | 7,867.31 € | 13.11 €/MWh | +33% |
+| CatBoost (24h) | 6,822.73 € | 11.37 €/MWh | +16% |
+| Prophet | 4,277.81 € | 7.13 €/MWh | -27% |
 
-Predicted prices profit: <TODO fix model and recalculate> 
+**Why XGBoost wins despite higher MAE:**
 
-Prediction vs historic price strategy difference: <TODO show difference> -->
+| Model | Price Std | Min | Max | Range |
+|-------|-----------|-----|-----|-------|
+| Actual | 76.2 | -0.6 | 500.0 | 500.6 |
+| XGBoost | 91.8 | 6.6 | **553.9** | 547.3 |
+| LightGBM | 89.3 | 18.2 | 502.1 | 483.9 |
+| CatBoost | 87.5 | 5.8 | 438.0 | 432.2 |
+| Prophet | 49.1 | 38.0 | 280.5 | 242.5 |
+
+- **XGBoost captures extremes** - max 553.9 (overshoots actual) = stronger sell signals
+- **CatBoost is conservative** - max ~440 = weaker signals, lower profit
+- **MAE ≠ profit-optimal** - being off on extremes hurts MAE but helps profit
+- **For arbitrage, ordering matters** - identifying cheap vs expensive hours > exact values
+
+### Model MAE Comparison
+
+| Model | Horizon | MAE | RMSE |
+|-------|---------|-----|------|
+| CatBoost | 1h | 14.40 | 20.19 |
+| CatBoost | 24h | 42.03 | 58.99 |
+| LightGBM | 24h | 43.47 | 59.39 |
+| XGBoost | 24h | 46.24 | 62.84 |
+
+**Key findings:**
+- CatBoost has lowest MAE but XGBoost has highest profit
+- For arbitrage, prediction variance matters more than point accuracy
+- Feature engineering improves MAE by ~5% but doesn't improve profit significantly
 
