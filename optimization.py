@@ -5,16 +5,18 @@ Maximizes profit by buying low (charging) and selling high (discharging).
 Uses Linear Programming for efficient optimization.
 
 Problem formulation:
-    Maximize: sum(price[t] * x[t])  for t = 0..T
-    Where:    x[t] > 0 = discharge (sell)
-              x[t] < 0 = charge (buy)
+    Maximize: -sum(price[t] * x[t])  for t = 0..T
+    Where:    x[t] > 0 = charge (buy)
+              x[t] < 0 = discharge (sell)
 
     Subject to:
         -1 <= x[t] <= 1          # Charge/discharge rate limit (1 MWh/h)
          0 <= SOC[t] <= 1        # Battery capacity limits
-        SOC[t] = sum(x[0:t])     # State of charge = cumulative energy
+        SOC[t] = sum(x[0:t])     # State of charge = cumulative energy (battery starts empty)
 
 The LP efficiently finds the optimal charge/discharge schedule given prices.
+A schedule planned on forecast prices is always settled at the actual prices,
+hence planning on the actual prices (perfect foresight) is the upper bound.
 '''
 
 import numpy as np
@@ -22,22 +24,21 @@ import pandas as pd
 from scipy.optimize import linprog
 
 
-def get_profit(df_time_prices):
+def get_schedule(prices):
     '''
-    Calculate optimal profit for given price time series using Linear Programming.
+    Calculate optimal charge/discharge schedule for given price time series using Linear Programming.
 
     Mathematical formulation:
-        Maximize: sum(price[t] * x[t])
+        Minimize: sum(price[t] * x[t])    (= maximize profit -sum(price[t] * x[t]))
         Subject to:
             -1 <= x[t] <= 1           (action bounds)
             0 <= cumsum(x[0:t]) <= 1  (SOC constraints)
     '''
-    prices = df_time_prices.y.values
-    num_steps = df_time_prices.shape[0]
+    num_steps = len(prices)
 
-    # Objective: maximize sum(price * x) = minimize -sum(price * x)
-    # This is a linear objective: c^T * x where c = -prices
-    c = -prices
+    # Objective: buying (x > 0) costs price * x, selling (x < 0) earns it
+    # This is a linear objective: c^T * x where c = prices
+    c = prices
 
     # Build SOC constraints as inequality: A_ub @ x <= b_ub
     # For each timestep t: 0 <= sum(x[0:t]) <= 1
@@ -58,37 +59,30 @@ def get_profit(df_time_prices):
 
     # Solve LP using HiGHS solver (fast for this problem size)
     result = linprog(c, A_ub=A_ub, b_ub=b_ub, bounds=bounds, method='highs')
+    if not result.success:
+        raise RuntimeError(f'Schedule optimization failed: {result.message}')
+    return result.x
 
-    if result.success:
-        opt_schedule = result.x
-        # Negate to convert back from minimization to maximization
-        opt_profit = -result.fun
-        return opt_schedule, opt_profit
-    else:
-        return None, 0.0
+
+def get_profit(schedule, prices):
+    '''
+    Calculate trading profit of a charge/discharge schedule, settled at the given prices.
+    '''
+    # Selling (x < 0) earns the price, buying (x > 0) costs it
+    return -np.dot(prices, schedule)
 
 
 if __name__ == '__main__':
-    fcst = pd.read_csv('./fcst.csv')
     df_resampled = pd.read_csv('./df_resampled.csv')
 
     ts_slicing_len = 2500
+    prices = df_resampled.y.values[:ts_slicing_len]
 
-    hist_opt_schedule, hist_opt_profit = get_profit(df_resampled[:ts_slicing_len])
-    print(f'Historic prices profit: {hist_opt_profit:.2f} € (total)')
-    print(f'Historic prices profit: {hist_opt_profit / ts_slicing_len:.2f} €/MWh (avg)')
+    opt_schedule = get_schedule(prices)
+    opt_profit = get_profit(opt_schedule, prices)
+    print(f'Historic prices profit: {opt_profit:.2f} € (total)')
+    print(f'Historic prices profit: {opt_profit / ts_slicing_len * 24:.2f} €/day (avg)')
 
-    y_pred_df = fcst[['ds','yhat']].set_index('ds')
-    y_pred_df = y_pred_df.rename(columns={'yhat':'y'})
-    pred_opt_schedule, pred_opt_profit = get_profit(y_pred_df[:ts_slicing_len])
-    print(f'Predicted prices profit: {pred_opt_profit:.2f} € (total)')
-    print(f'Predicted prices profit: {pred_opt_profit / ts_slicing_len:.2f} €/MWh (avg)')
-
-    print(f'Strategy difference: {pred_opt_profit - hist_opt_profit:.2f} €')
-
-    if hist_opt_schedule is not None:
-        soc = np.cumsum(hist_opt_schedule)
-        print(f'SOC range: [{soc.min():.3f}, {soc.max():.3f}] (should be [0, 1])')
-        print(f'Action range: [{hist_opt_schedule.min():.3f}, {hist_opt_schedule.max():.3f}] (should be [-1, 1])')
-
-
+    soc = np.cumsum(opt_schedule)
+    print(f'SOC range: [{soc.min():.3f}, {soc.max():.3f}] (should be [0, 1])')
+    print(f'Action range: [{opt_schedule.min():.3f}, {opt_schedule.max():.3f}] (should be [-1, 1])')

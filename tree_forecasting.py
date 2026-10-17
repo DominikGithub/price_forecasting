@@ -59,8 +59,8 @@ clean_df = clean_df.interpolate()
 
 # create prediction values
 clean_df['y_target'] = clean_df.y.shift(-N_STEPS_PRED_HORIZON, freq="h")
-# fill empty target values
-clean_df.loc[clean_df['y_target'].isna(), 'y_target'] = clean_df.loc[clean_df['y_target'].isna(), 'y']
+# drop the last hours without a future target value
+clean_df = clean_df.dropna(subset=['y_target'])
 
 # # plot raw data and targets
 # plot_df = clean_df.reset_index()
@@ -112,20 +112,20 @@ print('# test samples:', n_test_samples)
 def _slice_fn(timestamp, set_name):
     '''
     Create a time series sample from a dataframe, starting at the
-    given timestamp, with `N_STEPS_SAMPLE_LEN` steps.
+    given timestamp, with `N_STEPS_SAMPLE_LEN` steps of all feature columns.
     Returns: list of X feature sample + last item ist the Y target value
     '''
     if set_name == 'train': df = train_df
     elif set_name == 'test': df = test_df
     else: raise IOError(f'Unkown datas set {set_name}')
-    # slice sample to 24 hour step length
+    # slice sample to `N_STEPS_SAMPLE_LEN` hour step length and flatten the feature columns per step
     slice_df = df.loc[df.index > timestamp, :]
-    sa_df = slice_df.iloc[:N_STEPS_SAMPLE_LEN*n_features, :]
-    return sa_df.y.values.tolist() +[float(sa_df.y_target[-1])]
+    sa_df = slice_df.iloc[:N_STEPS_SAMPLE_LEN, :]
+    return sa_df.drop(columns='y_target').values.flatten().tolist() + [float(sa_df.y_target.iloc[-1])]
 
 
-train_tup = train_df.iloc[:train_df.shape[0]-N_STEPS_SAMPLE_LEN*n_features].index.values
-test_tup = test_df.iloc[:test_df.shape[0]-N_STEPS_SAMPLE_LEN*n_features].index.values
+train_tup = train_df.iloc[:train_df.shape[0]-N_STEPS_SAMPLE_LEN].index.values
+test_tup = test_df.iloc[:test_df.shape[0]-N_STEPS_SAMPLE_LEN].index.values
 
 with mp.Pool(os.cpu_count()) as p:
     sample_train_lst = p.starmap(_slice_fn, zip(train_tup, itertools.repeat('train')))
@@ -193,8 +193,12 @@ mape = mean_absolute_percentage_error(Y_test, y_pred)
 print(f"MAPE: {mape:.2f}")
 
 
-## Plot predictions (y_pred) over true data (y_true)
-eval_df = pd.DataFrame.from_dict({'y_true':Y_test, 'y_pred':y_pred, 'day':test_df.index[N_STEPS_SAMPLE_LEN*n_features:]})
-ax = eval_df.plot(x='day', y=['y_true', 'y_pred'], kind='line', figsize=(16, 6))
+## Plot predictions (y_pred) over true data (y_true) at their target time (last sample step + prediction horizon)
+target_ds = test_df.index[N_STEPS_SAMPLE_LEN:] + pd.Timedelta(hours=N_STEPS_PRED_HORIZON)
+eval_df = pd.DataFrame.from_dict({'y_true':Y_test, 'y_pred':y_pred, 'ds':target_ds})
+ax = eval_df.plot(x='ds', y=['y_true', 'y_pred'], kind='line', figsize=(16, 6))
 fig = ax.get_figure()
 fig.savefig(f'./plots/16_{args.model}_cross_validation_{N_STEPS_PRED_HORIZON}_af{DO_EXTEND_FEATURES}.png')
+
+## Save test set predictions with their target time (input for calculate_profit.py)
+eval_df.to_csv(f'./predictions_{args.model}_l{N_STEPS_SAMPLE_LEN}_z{N_STEPS_PRED_HORIZON}_af{DO_EXTEND_FEATURES}.csv', index=False)
